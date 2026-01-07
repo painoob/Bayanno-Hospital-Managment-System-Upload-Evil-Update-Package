@@ -8,7 +8,7 @@ An **authenticated remote code execution (RCE)** vulnerability exists in the upd
 
 ## Vulnerability Details
 
-- **Affected Component:** `/admin/update` (Update Mechanism)
+- **Affected Component:** `application/controllers/Updater.php` (Update Mechanism)
 - **Vulnerability Type:** Authenticated Remote Code Execution (RCE)
 - **Authentication Required:** Yes (Administrator)
 - **Impact:** Complete compromise of the application and server
