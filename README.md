@@ -53,10 +53,10 @@ zip -r update_v2.3.zip update/
 
 ### 3. Upload the Malicious ZIP
 
-1-Login as administrator.
-2-Go to the Update section (/admin/update).
-3-Upload the update_v2.3.zip file.
-4-Trigger the update process.
+- Login as administrator.
+- Go to the Update section (/admin/update).
+- Upload the update_v2.3.zip file.
+- Trigger the update process.
 
 ![0b6fbb74-e30e-4dd5-83a2-23bc119e9040](https://github.com/user-attachments/assets/814d7415-60c1-47cb-b176-451468b603bb)
 
